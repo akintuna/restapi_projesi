@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-weight"></i> Yeni Birim Ekle</h1>
+    <a href="/birimler" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Listeye Dön
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="/birimler/yeni">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="kisa_adi" class="form-label">Kısa Adı *</label>
+                        <input type="text" class="form-control" id="kisa_adi" name="kisa_adi" 
+                               value="{{ form_data.kisa_adi if form_data else '' }}" required maxlength="15">
+                        <div class="form-text">Örnek: kg, g, adet, lt</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="kg_karsiligi" class="form-label">Kg Karşılığı</label>
+                        <input type="number" class="form-control" id="kg_karsiligi" name="kg_karsiligi" 
+                               step="0.001" value="{{ form_data.kg_karsiligi if form_data else '1.0' }}">
+                        <div class="form-text">1 birim = kaç kg</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="adi" class="form-label">Birim Adı *</label>
+                <input type="text" class="form-control" id="adi" name="adi" 
+                       value="{{ form_data.adi if form_data else '' }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="2">{{ form_data.aciklama if form_data else '' }}</textarea>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+                <a href="/birimler" class="btn btn-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

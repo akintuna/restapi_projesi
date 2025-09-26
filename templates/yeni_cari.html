@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-user-plus"></i> Yeni Cari Ekle</h1>
+    <a href="/cariler" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Listeye Dön
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="/cariler/yeni">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="adi_soyadi" class="form-label">Adı Soyadı *</label>
+                        <input type="text" class="form-control" id="adi_soyadi" name="adi_soyadi" 
+                               value="{{ form_data.adi_soyadi if form_data else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="tc_kimlik_no" class="form-label">TC Kimlik No</label>
+                        <input type="text" class="form-control" id="tc_kimlik_no" name="tc_kimlik_no" 
+                               value="{{ form_data.tc_kimlik_no if form_data else '' }}" maxlength="11">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="3">{{ form_data.aciklama if form_data else '' }}</textarea>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+                <a href="/cariler" class="btn btn-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
