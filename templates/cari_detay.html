@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-user"></i> Cari Detay: {{ cari.adi_soyadi }}</h1>
+    <div>
+        <a href="{{ url_for('cari.cari_duzenle', cari_id=cari.id) }}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Düzenle
+        </a>
+        <a href="{{ url_for('cari.cari_listesi') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Listeye Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Temel Bilgiler</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Cari ID:</th>
+                                <td>{{ cari.id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Adı Soyadı:</th>
+                                <td><strong>{{ cari.adi_soyadi }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>TC Kimlik No:</th>
+                                <td>{{ cari.tc_kimlik_no or 'Belirtilmemiş' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>Durum:</th>
+                                <td>
+                                    <span class="badge bg-success">Aktif</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if cari.aciklama %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-sticky-note"></i> Açıklama</h6>
+                    <div class="alert alert-light border">
+                        {{ cari.aciklama }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> İstatistikler</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-file-invoice fa-2x text-primary mb-2"></i>
+                        <h4>0</h4>
+                        <small class="text-muted">Toplam Fatura</small>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-coins fa-2x text-success mb-2"></i>
+                        <h4>0.00 TL</h4>
+                        <small class="text-muted">Toplam İşlem</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Hızlı İşlemler</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <!-- DÜZELTİLMİŞ LINK: -->
+                    <a href="/faturalar/yeni?cari_id={{ cari.id }}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-invoice"></i> Yeni Fatura Oluştur
+                    </a>
+                    <form method="POST" action="{{ url_for('cari.cari_sil', cari_id=cari.id) }}" 
+                          class="d-grid" onsubmit="return confirm('Bu cariyi silmek istediğinizden emin misiniz?');">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Cariyi Sil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Faturalar Bölümü -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-file-invoice"></i> İlişkili Faturalar</h5>
+    </div>
+    <div class="card-body text-center text-muted py-5">
+        <i class="fas fa-receipt fa-3x mb-3"></i>
+        <p>Bu carinin faturaları henüz gösterilmiyor.</p>
+        <small>Fatura modülü tamamlandığında burada listelenecek.</small>
+    </div>
+</div>
+
+<style>
+.table-borderless th {
+    font-weight: 600;
+    color: #495057;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+{% endblock %}

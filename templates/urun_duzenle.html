@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-edit"></i> Ürün Düzenle: {{ urun.adi }}</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Ürün Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="adi" class="form-label">Ürün Adı *</label>
+                        <input type="text" class="form-control" id="adi" name="adi" 
+                               value="{{ urun.adi }}" required maxlength="200">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="kisa_adi" class="form-label">Kısa Ad</label>
+                        <input type="text" class="form-control" id="kisa_adi" name="kisa_adi" 
+                               value="{{ urun.kisa_adi or '' }}" maxlength="20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="barkod" class="form-label">Barkod</label>
+                        <input type="text" class="form-control" id="barkod" name="barkod" 
+                               value="{{ urun.barkod or '' }}" maxlength="50">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="birim_id" class="form-label">Birim</label>
+                        <select class="form-select" id="birim_id" name="birim_id">
+                            <option value="">Birim Seçin</option>
+                            {% for birim in birimler %}
+                            <option value="{{ birim.id }}" 
+                                    {{ 'selected' if urun.birim_id == birim.id }}>
+                                {{ birim.kisa_adi }} ({{ birim.adi }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="kdv" class="form-label">KDV Oranı (%) *</label>
+                        <select class="form-select" id="kdv" name="kdv" required>
+                            <option value="0" {{ 'selected' if urun.kdv == 0 }}>%0</option>
+                            <option value="1" {{ 'selected' if urun.kdv == 1 }}>%1</option>
+                            <option value="8" {{ 'selected' if urun.kdv == 8 }}>%8</option>
+                            <option value="18" {{ 'selected' if urun.kdv == 18 }}>%18</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="3" 
+                          maxlength="500">{{ urun.aciklama or '' }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Ürün ID</label>
+                        <input type="text" class="form-control bg-light" value="{{ urun.id }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Durum</label>
+                        <div class="form-control bg-light">
+                            <span class="badge bg-success">Aktif</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Güncelle
+                </button>
+                <a href="{{ url_for('urun.urun_listesi') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Listeye Dön
+                </a>
+                <a href="{{ url_for('urun.urun_detay', urun_id=urun.id) }}" class="btn btn-info">
+                    <i class="fas fa-eye"></i> Detayları Gör
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validasyonu
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const adi = document.getElementById('adi').value.trim();
+        
+        if (!adi) {
+            e.preventDefault();
+            alert('Ürün adı zorunludur!');
+            document.getElementById('adi').focus();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-plus-circle"></i> Yeni Birim Ekle</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Birim Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="kisa_adi" class="form-label">Kısa Ad *</label>
+                        <input type="text" class="form-control" id="kisa_adi" name="kisa_adi" 
+                               value="{{ request.form.kisa_adi or '' }}" required maxlength="20" 
+                               placeholder="kg, adet, mt, lt...">
+                        <div class="form-text">Birimin kısa kodu (maksimum 20 karakter)</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="adi" class="form-label">Birim Adı *</label>
+                        <input type="text" class="form-control" id="adi" name="adi" 
+                               value="{{ request.form.adi or '' }}" required maxlength="100"
+                               placeholder="Kilogram, Adet, Metre...">
+                        <div class="form-text">Birimin tam adı</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="3" 
+                          maxlength="500" placeholder="Birim ile ilgili açıklama...">{{ request.form.aciklama or '' }}</textarea>
+                <div class="form-text">Birim ile ilgili ek bilgiler (opsiyonel)</div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Örnek Birimler:</strong> 
+                <span class="badge bg-secondary">adet</span> - Adet,
+                <span class="badge bg-secondary">kg</span> - Kilogram,
+                <span class="badge bg-secondary">mt</span> - Metre,
+                <span class="badge bg-secondary">lt</span> - Litre,
+                <span class="badge bg-secondary">m2</span> - Metrekare,
+                <span class="badge bg-secondary">saat</span> - Saat
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+                <a href="{{ url_for('birim.birim_listesi') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.badge {
+    font-size: 0.8em;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validasyonu
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const kisaAdi = document.getElementById('kisa_adi').value.trim();
+        const adi = document.getElementById('adi').value.trim();
+        
+        if (!kisaAdi) {
+            e.preventDefault();
+            alert('Kısa ad zorunludur!');
+            document.getElementById('kisa_adi').focus();
+            return;
+        }
+        
+        if (!adi) {
+            e.preventDefault();
+            alert('Birim adı zorunludur!');
+            document.getElementById('adi').focus();
+            return;
+        }
+        
+        // Kısa ad için format kontrolü (sadece harf, rakam, boşluk)
+        if (!/^[a-zA-Z0-9\s]+$/.test(kisaAdi)) {
+            e.preventDefault();
+            alert('Kısa ad sadece harf, rakam ve boşluk içerebilir!');
+            document.getElementById('kisa_adi').focus();
+            return;
+        }
+    });
+    
+    // Kısa adı otomatik küçük harfe çevir
+    document.getElementById('kisa_adi').addEventListener('blur', function() {
+        this.value = this.value.toLowerCase();
+    });
+});
+</script>
+{% endblock %}

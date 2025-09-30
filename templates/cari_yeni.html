@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-user-plus"></i> Yeni Cari Ekle</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Cari Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="adi_soyadi" class="form-label">Adı Soyadı / Ünvan *</label>
+                        <input type="text" class="form-control" id="adi_soyadi" name="adi_soyadi" 
+                               value="{{ request.form.adi_soyadi or '' }}" required maxlength="100">
+                        <div class="form-text">Cari hesap sahibinin adı soyadı veya firma ünvanı</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="tc_kimlik_no" class="form-label">TC Kimlik No / Vergi No</label>
+                        <input type="text" class="form-control" id="tc_kimlik_no" name="tc_kimlik_no"
+                               value="{{ request.form.tc_kimlik_no or '' }}" maxlength="11" pattern="[0-9]{11}">
+                        <div class="form-text">11 haneli TC Kimlik No veya Vergi No</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="3" 
+                          maxlength="500">{{ request.form.aciklama or '' }}</textarea>
+                <div class="form-text">Cari ile ilgili ek bilgiler</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+                <a href="{{ url_for('cari.cari_listesi') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+
+<script>
+// TC Kimlik No validasyonu
+document.getElementById('tc_kimlik_no').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Form gönderiminden önce validasyon
+document.querySelector('form').addEventListener('submit', function(e) {
+    const adiSoyadi = document.getElementById('adi_soyadi').value.trim();
+    const tcKimlikNo = document.getElementById('tc_kimlik_no').value.trim();
+    
+    if (!adiSoyadi) {
+        e.preventDefault();
+        alert('Cari adı zorunludur!');
+        document.getElementById('adi_soyadi').focus();
+        return;
+    }
+    
+    if (tcKimlikNo && tcKimlikNo.length !== 11) {
+        e.preventDefault();
+        alert('TC Kimlik No 11 haneli olmalıdır!');
+        document.getElementById('tc_kimlik_no').focus();
+        return;
+    }
+});
+</script>
+{% endblock %}

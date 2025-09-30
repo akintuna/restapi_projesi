@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-box"></i> Ürün Detay: {{ urun.adi }}</h1>
+    <div>
+        <a href="{{ url_for('urun.urun_duzenle', urun_id=urun.id) }}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Düzenle
+        </a>
+        <a href="{{ url_for('urun.urun_listesi') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Listeye Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Temel Bilgiler</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Ürün ID:</th>
+                                <td>{{ urun.id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Ürün Adı:</th>
+                                <td><strong>{{ urun.adi }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Kısa Ad:</th>
+                                <td>{{ urun.kisa_adi or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Barkod:</th>
+                                <td>
+                                    {% if urun.barkod %}
+                                    <span class="badge bg-secondary">{{ urun.barkod }}</span>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">KDV Oranı:</th>
+                                <td>
+                                    <span class="badge bg-info">%{{ urun.kdv }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Birim:</th>
+                                <td>{{ urun.birim_adi or 'Belirtilmemiş' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Durum:</th>
+                                <td>
+                                    <span class="badge bg-success">Aktif</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if urun.aciklama %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-sticky-note"></i> Açıklama</h6>
+                    <div class="alert alert-light border">
+                        {{ urun.aciklama }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- KDV Bilgisi Kartı -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-percentage"></i> KDV Bilgisi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-12">
+                        <div class="p-3">
+                            <h4 class="text-info">KDV Oranı: %{{ urun.kdv }}</h4>
+                            <p class="text-muted">
+                                Bu ürün %{{ urun.kdv }} KDV oranına sahiptir.
+                                {% if urun.kdv == 0 %}
+                                <br><small class="text-success">(KDV istisnası uygulanmaktadır)</small>
+                                {% elif urun.kdv == 1 %}
+                                <br><small class="text-info">(Temel gıda ürünleri)</small>
+                                {% elif urun.kdv == 8 %}
+                                <br><small class="text-warning">(Temel ihtiyaç ürünleri)</small>
+                                {% else %}
+                                <br><small class="text-primary">(Genel KDV oranı)</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Hızlı İşlemler -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Hızlı İşlemler</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('urun.urun_duzenle', urun_id=urun.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Ürünü Düzenle
+                    </a>
+                    <a href="/faturalar/yeni?urun_id={{ urun.id }}" class="btn btn-primary">
+                        <i class="fas fa-file-invoice"></i> Faturada Kullan
+                    </a>
+                    <form method="POST" action="{{ url_for('urun.urun_sil', urun_id=urun.id) }}" 
+                          class="d-grid" onsubmit="return confirm('Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!');">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Ürünü Sil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ürün Bilgisi -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-qrcode"></i> Ürün Kimliği</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-barcode fa-2x text-primary mb-2"></i>
+                    {% if urun.barkod %}
+                    <h5>{{ urun.barkod }}</h5>
+                    <small class="text-muted">Barkod</small>
+                    {% else %}
+                    <h5 class="text-muted">-</h5>
+                    <small class="text-muted">Barkod Tanımlı Değil</small>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-info py-2">
+                    <small>
+                        <i class="fas fa-info-circle"></i> 
+                        Ürün ID: <strong>{{ urun.id }}</strong>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kullanım İstatistikleri -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Kullanım İstatistikleri</h5>
+        <span class="badge bg-secondary">Yakında</span>
+    </div>
+    <div class="card-body text-center text-muted py-5">
+        <i class="fas fa-chart-pie fa-3x mb-3"></i>
+        <p>Bu ürünün kullanım istatistikleri henüz gösterilmiyor.</p>
+        <small>Fatura modülü tamamlandığında burada görünecek.</small>
+    </div>
+</div>
+
+<style>
+.table-borderless th {
+    font-weight: 600;
+    color: #495057;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+{% endblock %}

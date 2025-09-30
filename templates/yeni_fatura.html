@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-file-invoice"></i> Yeni Fatura Oluştur</h1>
+    <a href="/faturalar" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Listeye Dön
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Fatura Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <form id="faturaForm" method="POST" action="/faturalar/yeni">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="fatura_tarihi" class="form-label">Fatura Tarihi *</label>
+                        <input type="date" class="form-control" id="fatura_tarihi" name="fatura_tarihi" 
+                               value="{{ today }}" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="fatura_no" class="form-label">Fatura No</label>
+                        <input type="text" class="form-control" id="fatura_no" name="fatura_no" 
+                               value="{{ fatura_no }}" readonly>
+                        <div class="form-text">Otomatik oluşturulacak</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="cari_id" class="form-label">Cari *</label>
+                        <select class="form-select" id="cari_id" name="cari_id" required>
+                            <option value="">Cari Seçin</option>
+                            {% for cari in cariler %}
+                            <option value="{{ cari.id }}">{{ cari.adi_soyadi }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="aciklama" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="aciklama" name="aciklama" rows="2"></textarea>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Fatura Detayları -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Fatura Detayları</h5>
+        <button type="button" class="btn btn-primary btn-sm" onclick="yeniDetayEkle()">
+            <i class="fas fa-plus"></i> Yeni Kalem Ekle
+        </button>
+    </div>
+    <div class="card-body">
+        <div id="detaylarContainer">
+            <!-- Detaylar buraya JavaScript ile eklenecek -->
+        </div>
+
+        <!-- Detaylar yok ise gösterilecek -->
+        <div class="text-center py-4 text-muted" id="bosDetayMesaji">
+            <i class="fas fa-receipt fa-2x mb-2"></i>
+            <p>Henüz fatura kalemi eklenmemiş</p>
+        </div>
+
+        <!-- Toplamlar -->
+        <div class="row mt-4" id="toplamlarContainer" style="display: none;">
+            <div class="col-md-6 offset-md-6">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td><strong>Toplam Miktar:</strong></td>
+                                <td id="toplamMiktar">0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Toplam Brut Tutar:</strong></td>
+                                <td id="toplamBrut">0.00 TL</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Toplam KDV:</strong></td>
+                                <td id="toplamKdv">0.00 TL</td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><strong>Genel Toplam:</strong></td>
+                                <td id="genelToplam"><strong>0.00 TL</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detay Ekleme Modalı - TAM VERSİYON -->
+<div class="modal fade" id="detayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detayModalLabel">Fatura Kalemi Ekle/Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="detayForm">
+                    <input type="hidden" id="detayIndex">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="urun_id" class="form-label">Ürün *</label>
+                                <select class="form-select" id="urun_id" required>
+                                    <option value="">Ürün Seçin</option>
+                                    {% for urun in urunler %}
+                                    <option value="{{ urun.id }}" 
+                                            data-birimfiyat="{{ urun.birim_fiyat or 0 }}"
+                                            data-kdv="{{ urun.kdv }}"
+                                            data-birim="{{ urun.birim_id }}">
+                                        {{ urun.adi }} ({{ urun.kdv }}% KDV)
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="miktar" class="form-label">Miktar *</label>
+                                <input type="number" class="form-control" id="miktar" step="0.01" min="0.01" value="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="birim_id" class="form-label">Birim</label>
+                                <select class="form-select" id="birim_id">
+                                    <option value="">Birim Seçin</option>
+                                    {% for birim in birimler %}
+                                    <option value="{{ birim.id }}">{{ birim.kisa_adi }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="birim_fiyat" class="form-label">Birim Fiyat (TL) *</label>
+                                <input type="number" class="form-control" id="birim_fiyat" step="0.01" min="0" value="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="kdv_orani" class="form-label">KDV Oranı % *</label>
+                                <select class="form-select" id="kdv_orani" required>
+                                    <option value="0">%0</option>
+                                    <option value="1">%1</option>
+                                    <option value="8" selected>%8</option>
+                                    <option value="18">%18</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="aciklama_detay" class="form-label">Açıklama</label>
+                                <input type="text" class="form-control" id="aciklama_detay" placeholder="Kalem açıklaması">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Brut Tutar (TL)</label>
+                                <input type="text" class="form-control" id="brut_tutar" value="0.00" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Net Tutar (TL)</label>
+                                <input type="text" class="form-control" id="net_tutar" value="0.00" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-success" onclick="detayKaydet()">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="submit" form="faturaForm" class="btn btn-success btn-lg">
+        <i class="fas fa-save"></i> Faturayı Kaydet
+    </button>
+    <a href="/faturalar" class="btn btn-secondary">İptal</a>
+</div>
+
+<style>
+.detay-satiri {
+    border-left: 4px solid #007bff;
+    transition: all 0.3s;
+}
+.detay-satiri:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+// Global değişkenler
+let faturaDetaylari = [];
+let detayModal = null;
+
+// Sayfa yüklendiğinde
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("✅ DOM yüklendi");
+    
+    // Modal'ı initialize et
+    const detayModalElement = document.getElementById('detayModal');
+    if (detayModalElement) {
+        detayModal = new bootstrap.Modal(detayModalElement);
+        console.log("✅ Modal initialize edildi");
+    }
+    
+    // Bugünün tarihini varsayılan yap
+    document.getElementById('fatura_tarihi').value = new Date().toISOString().split('T')[0];
+    
+    // Fatura no oluştur
+    faturaNoOlustur();
+    
+    // Hesaplama event'lerini bağla
+    hesaplamaEventleriniBagla();
+});
+
+function faturaNoOlustur() {
+    const tarih = new Date();
+    const yil = tarih.getFullYear();
+    const ay = String(tarih.getMonth() + 1).padStart(2, '0');
+    const gun = String(tarih.getDate()).padStart(2, '0');
+    const faturaNo = `FTR${yil}${ay}${gun}001`;
+    document.getElementById('fatura_no').value = faturaNo;
+}
+
+function hesaplamaEventleriniBagla() {
+    // Ürün seçimi değiştiğinde
+    document.getElementById('urun_id').addEventListener('change', function() {
+        const seciliUrun = this.options[this.selectedIndex];
+        if (seciliUrun.value) {
+            document.getElementById('birim_fiyat').value = seciliUrun.dataset.birimfiyat || '0';
+            document.getElementById('kdv_orani').value = seciliUrun.dataset.kdv || '8';
+            document.getElementById('birim_id').value = seciliUrun.dataset.birim || '';
+            hesaplaTutarlar();
+        }
+    });
+    
+    // Miktar, birim fiyat veya KDV değiştiğinde
+    document.getElementById('miktar').addEventListener('input', hesaplaTutarlar);
+    document.getElementById('birim_fiyat').addEventListener('input', hesaplaTutarlar);
+    document.getElementById('kdv_orani').addEventListener('change', hesaplaTutarlar);
+}
+
+function hesaplaTutarlar() {
+    const miktar = parseFloat(document.getElementById('miktar').value) || 0;
+    const birimFiyat = parseFloat(document.getElementById('birim_fiyat').value) || 0;
+    const kdvOrani = parseInt(document.getElementById('kdv_orani').value) || 0;
+    
+    const brutTutar = miktar * birimFiyat;
+    const kdvTutari = brutTutar * kdvOrani / 100;
+    const netTutar = brutTutar + kdvTutari;
+    
+    document.getElementById('brut_tutar').value = brutTutar.toFixed(2);
+    document.getElementById('net_tutar').value = netTutar.toFixed(2);
+}
+
+function yeniDetayEkle() {
+    console.log("🔘 Yeni detay ekleniyor...");
+    
+    // Formu temizle
+    document.getElementById('detayForm').reset();
+    document.getElementById('detayIndex').value = '';
+    document.getElementById('birim_id').value = '';
+    
+    // Varsayılan değerler
+    document.getElementById('miktar').value = '1';
+    document.getElementById('birim_fiyat').value = '0';
+    document.getElementById('kdv_orani').value = '8';
+    hesaplaTutarlar();
+    
+    // Modal'ı aç
+    detayModal.show();
+}
+
+function detayKaydet() {
+    console.log("🔘 Detay kaydediliyor...");
+    
+    // Validasyon
+    const urunId = document.getElementById('urun_id').value;
+    const miktar = document.getElementById('miktar').value;
+    const birimFiyat = document.getElementById('birim_fiyat').value;
+    
+    if (!urunId || !miktar || !birimFiyat) {
+        alert('Lütfen zorunlu alanları doldurun! (Ürün, Miktar, Birim Fiyat)');
+        return;
+    }
+    
+    const urunSecenek = document.getElementById('urun_id').options[document.getElementById('urun_id').selectedIndex];
+    const birimSecenek = document.getElementById('birim_id').options[document.getElementById('birim_id').selectedIndex];
+    
+    const detay = {
+        urun_id: parseInt(urunId),
+        urun_adi: urunSecenek.text.split(' (')[0], // Sadece ürün adını al
+        miktar: parseFloat(miktar),
+        birim_id: parseInt(document.getElementById('birim_id').value) || null,
+        birim_adi: birimSecenek.value ? birimSecenek.text : '',
+        birim_fiyat: parseFloat(birimFiyat),
+        kdv_orani: parseInt(document.getElementById('kdv_orani').value),
+        brut_tutar: parseFloat(document.getElementById('brut_tutar').value),
+        net_tutar: parseFloat(document.getElementById('net_tutar').value),
+        aciklama: document.getElementById('aciklama_detay').value
+    };
+    
+    const index = document.getElementById('detayIndex').value;
+    if (index === '') {
+        // Yeni detay
+        faturaDetaylari.push(detay);
+        console.log("✅ Yeni detay eklendi:", detay);
+    } else {
+        // Detay güncelleme
+        faturaDetaylari[index] = detay;
+        console.log("✅ Detay güncellendi:", detay);
+    }
+    
+    detayModal.hide();
+    detaylariGoster();
+    toplamlariHesapla();
+}
+
+function detaylariGoster() {
+    const container = document.getElementById('detaylarContainer');
+    const bosMesaj = document.getElementById('bosDetayMesaji');
+    
+    if (faturaDetaylari.length === 0) {
+        bosMesaj.style.display = 'block';
+        return;
+    }
+    
+    bosMesaj.style.display = 'none';
+    
+    let html = '';
+    faturaDetaylari.forEach((detay, index) => {
+        html += `
+        <div class="detay-satiri card mb-2">
+            <div class="card-body py-2">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <strong>${detay.urun_adi}</strong>
+                        ${detay.aciklama ? '<br><small class="text-muted">' + detay.aciklama + '</small>' : ''}
+                    </div>
+                    <div class="col-md-1">${detay.miktar}</div>
+                    <div class="col-md-1">${detay.birim_adi || '-'}</div>
+                    <div class="col-md-2">${detay.birim_fiyat.toFixed(2)} TL</div>
+                    <div class="col-md-1">%${detay.kdv_orani}</div>
+                    <div class="col-md-2">${detay.net_tutar.toFixed(2)} TL</div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-sm btn-warning me-1" onclick="detayDuzenle(${index})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="detaySil(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function toplamlariHesapla() {
+    const toplamlarContainer = document.getElementById('toplamlarContainer');
+    
+    if (faturaDetaylari.length === 0) {
+        toplamlarContainer.style.display = 'none';
+        return;
+    }
+    
+    toplamlarContainer.style.display = 'block';
+    
+    const toplamlar = faturaDetaylari.reduce((acc, detay) => {
+        acc.miktar += detay.miktar;
+        acc.brut += detay.brut_tutar;
+        acc.kdv += (detay.brut_tutar * detay.kdv_orani / 100);
+        acc.net += detay.net_tutar;
+        return acc;
+    }, { miktar: 0, brut: 0, kdv: 0, net: 0 });
+    
+    document.getElementById('toplamMiktar').textContent = toplamlar.miktar.toFixed(2);
+    document.getElementById('toplamBrut').textContent = toplamlar.brut.toFixed(2) + ' TL';
+    document.getElementById('toplamKdv').textContent = toplamlar.kdv.toFixed(2) + ' TL';
+    document.getElementById('genelToplam').innerHTML = '<strong>' + toplamlar.net.toFixed(2) + ' TL</strong>';
+}
+
+function detayDuzenle(index) {
+    const detay = faturaDetaylari[index];
+    
+    document.getElementById('detayIndex').value = index;
+    document.getElementById('urun_id').value = detay.urun_id;
+    document.getElementById('miktar').value = detay.miktar;
+    document.getElementById('birim_id').value = detay.birim_id || '';
+    document.getElementById('birim_fiyat').value = detay.birim_fiyat;
+    document.getElementById('kdv_orani').value = detay.kdv_orani;
+    document.getElementById('aciklama_detay').value = detay.aciklama || '';
+    
+    hesaplaTutarlar();
+    detayModal.show();
+}
+
+function detaySil(index) {
+    if (confirm('Bu kalemi silmek istediğinizden emin misiniz?')) {
+        faturaDetaylari.splice(index, 1);
+        detaylariGoster();
+        toplamlariHesapla();
+    }
+}
+
+// Form gönderilmeden önce detayları hidden input'a ekle
+document.getElementById('faturaForm').addEventListener('submit', function(e) {
+    if (faturaDetaylari.length === 0) {
+        e.preventDefault();
+        alert('En az bir fatura kalemi eklemelisiniz!');
+        return;
+    }
+    
+    // Detayları JSON olarak hidden input'a ekle
+    const detaylarInput = document.createElement('input');
+    detaylarInput.type = 'hidden';
+    detaylarInput.name = 'detaylar';
+    detaylarInput.value = JSON.stringify(faturaDetaylari);
+    this.appendChild(detaylarInput);
+    
+    console.log("✅ Fatura gönderiliyor:", {
+        detaylar: faturaDetaylari,
+        formData: new FormData(this)
+    });
+});
+
+</script>
+
+{% endblock %}
